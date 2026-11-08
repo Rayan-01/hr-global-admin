@@ -60,6 +60,21 @@ async function putFile(path: string, buffer: Buffer, message: string) {
   }
 }
 
+async function deleteFile(path: string, message: string) {
+  const existing = await getFile(path);
+  if (!existing) return;
+  const { branch } = repository();
+  const response = await fetch(fileUrl(path), {
+    method: 'DELETE',
+    headers: { ...headers(true), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, branch, sha: existing.sha }),
+  });
+  if (!response.ok) {
+    const result = await response.json().catch(() => null) as { message?: string } | null;
+    throw new Error(result?.message || `GitHub could not delete ${path} (${response.status}).`);
+  }
+}
+
 export async function readContent(): Promise<SiteContent> {
   try {
     const file = await getFile(CONTENT_PATH);
@@ -74,11 +89,27 @@ export async function writeContent(content: SiteContent) {
   await putFile(CONTENT_PATH, Buffer.from(JSON.stringify(content, null, 2)), 'Update website content from admin dashboard');
 }
 
-export async function uploadImage(file: File) {
+export async function uploadImage(file: File, path: Array<string | number> = [], previousUrl = '') {
   const rawExtension = file.name.includes('.') ? file.name.split('.').pop() || '' : '';
   const extension = rawExtension ? `.${rawExtension.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}` : '';
   const baseName = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9-]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'image';
-  const name = `${Date.now()}-${baseName}${extension}`;
-  await putFile(`public/images/uploads/${name}`, Buffer.from(await file.arrayBuffer()), `Upload website image ${name}`);
-  return `/images/uploads/${name}`;
+  const heroIndex = path[0] === 'hero' && path[1] === 'images' && typeof path[2] === 'number' ? path[2] : null;
+  const name = heroIndex === null ? `${Date.now()}-${baseName}${extension}` : `hero-${heroIndex + 1}${extension}`;
+  const repositoryPath = `public/images/uploads/${name}`;
+  const assetUrl = `/images/uploads/${name}`;
+  const publicUrl = heroIndex === null ? assetUrl : `${assetUrl}?v=${Date.now()}`;
+
+  await putFile(repositoryPath, Buffer.from(await file.arrayBuffer()), heroIndex === null ? `Upload website image ${name}` : `Replace hero image ${heroIndex + 1}`);
+
+  const previousAssetUrl = previousUrl.split('?')[0];
+  if (heroIndex !== null && previousAssetUrl.startsWith('/images/uploads/') && previousAssetUrl !== assetUrl) {
+    const previousPath = `public${previousAssetUrl}`;
+    try {
+      await deleteFile(previousPath, `Remove replaced hero image ${heroIndex + 1}`);
+    } catch (error) {
+      console.error('The replacement was uploaded, but the previous hero image could not be removed.', error);
+    }
+  }
+
+  return publicUrl;
 }

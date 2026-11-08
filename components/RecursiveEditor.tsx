@@ -55,7 +55,10 @@ function StringEditor({ value, path, onChange, label }: { value: string; path: P
     if (!file) return;
     setUploading(true); setError('');
     try {
-      const body = new FormData(); body.append('file', file);
+      const body = new FormData();
+      body.append('file', file);
+      body.append('path', JSON.stringify(path));
+      body.append('previousUrl', value);
       const response = await fetch('/api/upload', { method: 'POST', body });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Upload failed.');
