@@ -90,24 +90,27 @@ export async function writeContent(content: SiteContent) {
 }
 
 export async function uploadImage(file: File, path: Array<string | number> = [], previousUrl = '') {
-  const rawExtension = file.name.includes('.') ? file.name.split('.').pop() || '' : '';
-  const extension = rawExtension ? `.${rawExtension.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}` : '';
-  const baseName = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9-]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'image';
-  const heroIndex = path[0] === 'hero' && path[1] === 'images' && typeof path[2] === 'number' ? path[2] : null;
-  const name = heroIndex === null ? `${Date.now()}-${baseName}${extension}` : `hero-${heroIndex + 1}${extension}`;
+  const rawExtension = file.name.includes('.') ? file.name.split('.').pop() || '' : file.type.split('/').pop() || 'img';
+  const extension = `.${rawExtension.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || 'img'}`;
+  const slot = path.map((part) => typeof part === 'number' ? part + 1 : part)
+    .join('-')
+    .replace(/[^a-zA-Z0-9-]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase() || 'image';
+  const name = `${slot}${extension}`;
   const repositoryPath = `public/images/uploads/${name}`;
   const assetUrl = `/images/uploads/${name}`;
-  const publicUrl = heroIndex === null ? assetUrl : `${assetUrl}?v=${Date.now()}`;
+  const publicUrl = `${assetUrl}?v=${Date.now()}`;
 
-  await putFile(repositoryPath, Buffer.from(await file.arrayBuffer()), heroIndex === null ? `Upload website image ${name}` : `Replace hero image ${heroIndex + 1}`);
+  await putFile(repositoryPath, Buffer.from(await file.arrayBuffer()), `Replace website image ${slot}`);
 
   const previousAssetUrl = previousUrl.split('?')[0];
-  if (heroIndex !== null && previousAssetUrl.startsWith('/images/uploads/') && previousAssetUrl !== assetUrl) {
+  if (previousAssetUrl.startsWith('/images/uploads/') && previousAssetUrl !== assetUrl) {
     const previousPath = `public${previousAssetUrl}`;
     try {
-      await deleteFile(previousPath, `Remove replaced hero image ${heroIndex + 1}`);
+      await deleteFile(previousPath, `Remove replaced website image ${slot}`);
     } catch (error) {
-      console.error('The replacement was uploaded, but the previous hero image could not be removed.', error);
+      console.error('The replacement was uploaded, but the previous image could not be removed.', error);
     }
   }
 
