@@ -45,7 +45,7 @@ export default function AdminApp() {
 
   async function save() {
     if (!content) return;
-    setSaving(true); setNotice({ kind: 'info', message: 'Saving to Google Drive…' });
+    setSaving(true); setNotice({ kind: 'info', message: 'Saving to GitHub…' });
     try {
       const response = await fetch('/api/content', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(content) });
       const result = await response.json();
@@ -78,5 +78,5 @@ function Login({ onSuccess }: { onSuccess: () => Promise<void> }) {
     } catch (loginError) { setError(loginError instanceof Error ? loginError.message : 'Login failed.'); }
     setLoading(false);
   }
-  return <main className="login-page"><form className="login-card" onSubmit={submit}><div className="login-badge">HR</div><h1>Website administration</h1><p>Sign in to update the public website content and upload images to Google Drive.</p><div className="field"><label>Email address</label><input className="input" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="username" /></div><div className="field"><label>Password</label><input className="input" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete="current-password" /></div>{error && <div className="status error" style={{ marginBottom: '1rem' }}>{error}</div>}<button className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>{loading ? 'Signing in…' : 'Sign in'}</button></form></main>;
+  return <main className="login-page"><form className="login-card" onSubmit={submit}><div className="login-badge">HR</div><h1>Website administration</h1><p>Sign in to update the public website content and upload images to GitHub.</p><div className="field"><label>Email address</label><input className="input" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="username" /></div><div className="field"><label>Password</label><input className="input" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete="current-password" /></div>{error && <div className="status error" style={{ marginBottom: '1rem' }}>{error}</div>}<button className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>{loading ? 'Signing in…' : 'Sign in'}</button></form></main>;
 }

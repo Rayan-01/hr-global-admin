@@ -1,6 +1,6 @@
 import { isAuthenticated } from '@/lib/auth';
 import { editableSections, type SiteContent } from '@/lib/default-content';
-import { readContent, writeContent } from '@/lib/drive';
+import { readContent, writeContent } from '@/lib/github';
 
 export async function GET() {
   const content = await readContent();

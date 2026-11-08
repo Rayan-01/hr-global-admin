@@ -1,5 +1,5 @@
 import { isAuthenticated } from '@/lib/auth';
-import { uploadImage } from '@/lib/drive';
+import { uploadImage } from '@/lib/github';
 
 export const runtime = 'nodejs';
 

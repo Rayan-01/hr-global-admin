@@ -48,6 +48,8 @@ function StringEditor({ value, path, onChange, label }: { value: string; path: P
   const key = String(path.at(-1) || '').toLowerCase();
   const longText = ['description', 'marqueetext', 'address'].includes(key) || value.length > 100;
   const media = isMediaPath(path);
+  const websiteUrl = process.env.NEXT_PUBLIC_WEBSITE_URL?.replace(/\/$/, '') || '';
+  const previewUrl = value.startsWith('/') && websiteUrl ? `${websiteUrl}${value}` : value;
 
   async function upload(file?: File) {
     if (!file) return;
@@ -62,5 +64,5 @@ function StringEditor({ value, path, onChange, label }: { value: string; path: P
     setUploading(false); if (fileInput.current) fileInput.current.value = '';
   }
 
-  return <div className="field"><label>{label}</label>{key === 'icon' ? <select className="select" value={value} onChange={(event) => onChange(path, event.target.value)}>{icons.map((icon) => <option key={icon} value={icon}>{humanize(icon)}</option>)}</select> : media ? <><div className="media-row"><input className="input" value={value} onChange={(event) => onChange(path, event.target.value)} placeholder="Image URL" /><button type="button" className="btn btn-secondary" disabled={uploading} onClick={() => fileInput.current?.click()}><ImageUp size={16} />{uploading ? 'Uploading…' : 'Upload image'}</button></div><input ref={fileInput} type="file" accept="image/*" hidden onChange={(event) => upload(event.target.files?.[0])} />{value && <img className="media-preview" src={value} alt="Preview" />}{error && <span className="status error">{error}</span>}</> : longText ? <textarea className="textarea" value={value} onChange={(event) => onChange(path, event.target.value)} /> : <input className="input" value={value} onChange={(event) => onChange(path, event.target.value)} />}</div>;
+  return <div className="field"><label>{label}</label>{key === 'icon' ? <select className="select" value={value} onChange={(event) => onChange(path, event.target.value)}>{icons.map((icon) => <option key={icon} value={icon}>{humanize(icon)}</option>)}</select> : media ? <><div className="media-row"><input className="input" value={value} onChange={(event) => onChange(path, event.target.value)} placeholder="Image URL" /><button type="button" className="btn btn-secondary" disabled={uploading} onClick={() => fileInput.current?.click()}><ImageUp size={16} />{uploading ? 'Uploading…' : 'Upload image'}</button></div><input ref={fileInput} type="file" accept="image/*" hidden onChange={(event) => upload(event.target.files?.[0])} />{value && <img className="media-preview" src={previewUrl} alt="Preview" />}{error && <span className="status error">{error}</span>}</> : longText ? <textarea className="textarea" value={value} onChange={(event) => onChange(path, event.target.value)} /> : <input className="input" value={value} onChange={(event) => onChange(path, event.target.value)} />}</div>;
 }
